@@ -1,9 +1,35 @@
 use web_sys::HtmlInputElement;
 use yew::{classes, function_component, html, AttrValue, Callback, Html, NodeRef, Properties};
 
+#[derive(Clone, PartialEq)]
+pub struct Input {
+    label: AttrValue,
+    value: Option<AttrValue>,
+    place_holder: Option<AttrValue>,
+}
+
+impl Input {
+    pub fn new(label: AttrValue) -> Self {
+        Input {
+            label,
+            value: None,
+            place_holder: None,
+        }
+    }
+
+    pub fn set_value(&mut self, value: AttrValue) {
+        self.value = Some(value);
+    }
+
+    #[allow(dead_code)]
+    pub fn set_place_holder(&mut self, place_holder: AttrValue) {
+        self.place_holder = Some(place_holder);
+    }
+}
+
 #[derive(Clone, PartialEq, Properties)]
 pub struct EditFormProps {
-    pub labels: Vec<AttrValue>,
+    pub inputs: Vec<Input>,
     pub hidden: bool,
     pub hide: Callback<bool>,
     pub save: Callback<Vec<String>>,
@@ -12,22 +38,25 @@ pub struct EditFormProps {
 #[function_component(EditForm)]
 pub fn edit_form(
     EditFormProps {
-        labels,
+        inputs,
         hidden,
         hide,
         save,
     }: &EditFormProps,
 ) -> Html {
-    let input_refs = vec![NodeRef::default(); labels.len()];
-    let inputs: Html = labels
+    let input_refs = vec![NodeRef::default(); inputs.len()];
+    let inputs: Html = inputs
         .iter()
         .enumerate()
-        .map(|(i, label)| {
+        .map(|(i, input)| {
+            let name = format!("input{i}");
+            let placeholder = &input.place_holder;
+            let value = &input.value;
             let input_ref = &input_refs[i];
             html! {
                 <div key={format!("form-item-{i}")}>
-                    <label>{ label }</label>
-                    <input type="text" name={format!("input{i}")} ref={input_ref}/>
+                    <label>{ &input.label }</label>
+                    <input type="text" {name} {placeholder} {value} ref={input_ref}/>
                 </div>
             }
         })

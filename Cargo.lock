@@ -64,6 +64,7 @@ dependencies = [
 name = "foxhole"
 version = "0.1.0"
 dependencies = [
+ "gloo-storage",
  "web-sys",
  "yew",
 ]
