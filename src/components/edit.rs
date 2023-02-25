@@ -44,7 +44,8 @@ pub fn edit_form(
         cancel
     }: &EditFormProps,
 ) -> Html {
-    let input_refs = vec![NodeRef::default(); inputs.len()];
+    let input_refs: Vec<_> = (0..inputs.len()).map(|_| NodeRef::default()).collect();
+
     let inputs: Html = inputs
         .iter()
         .enumerate()

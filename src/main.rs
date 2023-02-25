@@ -1,18 +1,19 @@
-use yew::{function_component, html, Html, classes};
+use yew::{classes, function_component, html, Html};
 
 mod components;
 
-use components::{Bar, Greeting};
+use components::{Bar, Greeting, cards::Cards};
 
 #[function_component(App)]
 fn app() -> Html {
     html! {
         <div class={classes!("app")}>
-            <Bar/> 
+            <Bar/>
             <header>
                 <h1>{ "Foxhole" }</h1>
                 <Greeting/>
             </header>
+            <Cards/>
         </div>
     }
 }
