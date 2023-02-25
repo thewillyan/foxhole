@@ -31,8 +31,8 @@ impl Input {
 pub struct EditFormProps {
     pub inputs: Vec<Input>,
     pub hidden: bool,
-    pub hide: Callback<bool>,
     pub save: Callback<Vec<String>>,
+    pub cancel: Callback<()>,
 }
 
 #[function_component(EditForm)]
@@ -40,8 +40,8 @@ pub fn edit_form(
     EditFormProps {
         inputs,
         hidden,
-        hide,
         save,
+        cancel
     }: &EditFormProps,
 ) -> Html {
     let input_refs = vec![NodeRef::default(); inputs.len()];
@@ -73,18 +73,17 @@ pub fn edit_form(
         })
     };
 
-    let hidden = *hidden;
-    let hide_on_click = {
-        let hide = hide.clone();
-        Callback::from(move |_| hide.emit(hidden))
+    let cancel_on_click =  {
+        let cancel = cancel.clone();
+        Callback::from(move |_| cancel.emit(()))
     };
 
     html! {
-        <div class={classes!("edit-form")} {hidden}>
+        <div class={classes!("edit-form")} hidden={*hidden}>
             { inputs }
             <div class={classes!("buttons")}>
                 <button onclick={save_on_click}>{"Save"}</button>
-                <button onclick={hide_on_click}>{"Cancel"}</button>
+                <button onclick={cancel_on_click}>{"Cancel"}</button>
             </div>
         </div>
     }
