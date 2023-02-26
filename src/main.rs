@@ -2,7 +2,7 @@ use yew::{classes, function_component, html, Html};
 
 mod components;
 
-use components::{Bar, Greeting, cards::Cards};
+use components::{Bar, Greeting, cards::LinkCards};
 
 #[function_component(App)]
 fn app() -> Html {
@@ -13,7 +13,7 @@ fn app() -> Html {
                 <h1>{ "Foxhole" }</h1>
                 <Greeting/>
             </header>
-            <Cards/>
+            <LinkCards/>
         </div>
     }
 }
