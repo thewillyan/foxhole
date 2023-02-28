@@ -14,8 +14,7 @@ pub fn greeting() -> Html {
     });
 
     // setup edit name form
-    let mut input = Input::new(AttrValue::from("Your user name:"));
-    input.set_value((*user_name).clone());
+    let input = Input::new(AttrValue::from("Your user name:")).value((*user_name).clone());
     let inputs = vec![input];
 
     let hide_state = use_state_eq(|| true);
@@ -23,22 +22,27 @@ pub fn greeting() -> Html {
         let hide_state = hide_state.clone();
         Callback::from(move |_| hide_state.set(false))
     };
-    let hide = {
-        let hide_state = hide_state.clone();
-        Callback::from(move |()| hide_state.set(true))
-    };
 
     let save_name = {
         let name = user_name.clone();
-        let hide = hide.clone();
-        Callback::from(move |values: Vec<String>| {
+        let hide = hide_state.clone();
+        Callback::from(move |input_values: Option<Vec<String>>| {
+            // hide when user cancel
+            let values = match input_values {
+                Some(vals) => vals,
+                None => {
+                    hide.set(true);
+                    return;
+                }
+            };
+
             let value = values.into_iter().next().unwrap_or_default();
             // store name on browser local storage
             if let Err(err) = LocalStorage::set("user_name", value.clone()) {
                 web_sys::console::log_1(&format!("{err}").into());
             };
             name.set(AttrValue::from(value));
-            hide.emit(())
+            hide.set(true);
         })
     };
 
@@ -49,7 +53,7 @@ pub fn greeting() -> Html {
                 <span class={classes!("name")} onclick={on_name_click}>{ &(*user_name) }</span>
                 {"!"}
             </p>
-            <EditForm {inputs} hidden={*hide_state} save={save_name} cancel={hide} />
+            <EditForm {inputs} hidden={*hide_state} save={save_name}/>
         </div>
     }
 }

@@ -17,22 +17,24 @@ impl Input {
         }
     }
 
-    pub fn set_value(&mut self, value: AttrValue) {
+    pub fn value(mut self, value: AttrValue) -> Self {
         self.value = Some(value);
+        self
     }
 
     #[allow(dead_code)]
-    pub fn set_place_holder(&mut self, place_holder: AttrValue) {
+    pub fn place_holder(mut self, place_holder: AttrValue) -> Self {
         self.place_holder = Some(place_holder);
+        self
     }
 }
+
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct EditFormProps {
     pub inputs: Vec<Input>,
     pub hidden: bool,
-    pub save: Callback<Vec<String>>,
-    pub cancel: Callback<()>,
+    pub save: Callback<Option<Vec<String>>>,
 }
 
 #[function_component(EditForm)]
@@ -41,7 +43,6 @@ pub fn edit_form(
         inputs,
         hidden,
         save,
-        cancel
     }: &EditFormProps,
 ) -> Html {
     let input_refs: Vec<_> = (0..inputs.len()).map(|_| NodeRef::default()).collect();
@@ -70,13 +71,12 @@ pub fn edit_form(
                 .iter()
                 .map(|input| input.cast::<HtmlInputElement>().unwrap().value())
                 .collect();
-            save.emit(input_values);
+            save.emit(Some(input_values));
         })
     };
-
-    let cancel_on_click =  {
-        let cancel = cancel.clone();
-        Callback::from(move |_| cancel.emit(()))
+    let cancel_on_click = {
+        let save = save.clone();
+        Callback::from(move |_| save.emit(None))
     };
 
     html! {
