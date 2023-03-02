@@ -1,5 +1,5 @@
 use crate::components::{
-    cards::cards_ctx::{Anchor, CardsContext, CardsProvider, ModifyCards},
+    cards::cards_ctx::{Anchor, CardsContext, CardsHandler, CardsProvider},
     edit::{EditForm, Input},
 };
 use yew::{
@@ -16,79 +16,71 @@ pub fn link_cards() -> Html {
     }
 }
 
+type CardId = usize;
+type LinkId = usize;
+
+#[derive(Clone, PartialEq)]
+enum CardFormAct {
+    Add,
+    Rename(CardId),
+}
+
+#[derive(Clone, PartialEq)]
+enum LinkFormAct {
+    Add(CardId),
+    Edit { card: CardId, link: LinkId },
+}
+
 #[function_component(CardList)]
 fn card_list() -> Html {
     let cards = use_context::<CardsContext>().unwrap();
 
-    // targets
-    let target_card = use_state_eq(|| None);
-    let select_card = {
-        let target = target_card.clone();
-        Callback::from(move |id: Option<usize>| target.set(id))
-    };
-
-    let target_link = use_state_eq(|| None);
-    let select_link = {
-        let target = target_link.clone();
-        Callback::from(move |id: Option<usize>| {
-            target.set(id);
-        })
-    };
-
     // card form
-    let card_name = match *target_card {
-        Some(index) => cards.inner[index].name.clone(),
-        None => AttrValue::default(),
+    let card_form_action = use_state_eq(|| None);
+    let card_form_hide = use_state_eq(|| true);
+
+    let card_name = match *card_form_action {
+        Some(CardFormAct::Rename(index)) => cards.inner[index].name.clone(),
+        _ => AttrValue::default(),
     };
     let input = Input::new(AttrValue::from("New card name:")).value(card_name);
     let card_inputs = vec![input];
 
-    let card_form_hidden = use_state_eq(|| true);
-    let show_card_form = {
-        let hidden = card_form_hidden.clone();
-        let select_card = select_card.clone();
-        Callback::from(move |_| {
-            select_card.emit(None);
-            hidden.set(false);
-        })
-    };
-
     let change_card = {
         let cards = cards.clone();
-        let hidden = card_form_hidden.clone();
+        let hidden = card_form_hide.clone();
         use_callback(
-            move |inputs_values: Option<Vec<String>>, id| {
-                let values = match inputs_values {
-                    Some(vals) => vals,
-                    None => {
-                        hidden.set(true);
-                        return;
-                    }
-                };
+            move |inputs_values: Option<Vec<String>>, form_action| {
+                if let (Some(values), Some(action)) = (inputs_values, (**form_action).clone()) {
+                    // don't allow empty name
+                    let name = match values.into_iter().next() {
+                        Some(val) if !val.is_empty() => AttrValue::from(val),
+                        _ => return,
+                    };
 
-                let name = match values.into_iter().next() {
-                    Some(val) if !val.is_empty() => AttrValue::from(val),
-                    _ => return,
-                };
-
-                let action = match **id {
-                    Some(id) => ModifyCards::Rename {
-                        card_index: id,
-                        new_name: name,
-                    },
-                    None => ModifyCards::Add(name),
-                };
-                cards.dispatch(action);
+                    let op = match action {
+                        CardFormAct::Add => CardsHandler::Add(name),
+                        CardFormAct::Rename(id) => CardsHandler::Rename {
+                            card_index: id,
+                            new_name: name,
+                        },
+                    };
+                    cards.dispatch(op);
+                }
+                form_action.set(None);
                 hidden.set(true);
             },
-            target_card.clone(),
+            card_form_action.clone(),
         )
     };
 
     // link form
-    let (link_label, link_url) = match (*target_card, *target_link) {
-        (Some(card_index), Some(link_index)) => {
-            let link = &cards.inner[card_index].links[link_index];
+    let link_form_action = use_state_eq(|| None);
+    let link_form_hide = use_state_eq(|| true);
+
+    let (link_label, link_url) = match *link_form_action {
+        Some(LinkFormAct::Edit { card, link }) => {
+            let link = &cards.inner[card].links[link];
             (link.label.clone(), link.url.clone())
         }
         _ => (AttrValue::default(), AttrValue::default()),
@@ -97,102 +89,75 @@ fn card_list() -> Html {
     let url_input = Input::new(AttrValue::from("URL:")).value(link_url);
     let link_inputs = vec![label_input, url_input];
 
-    let link_form_hidden = use_state_eq(|| true);
-
     let change_link = {
         let cards = cards.clone();
-        let hidden = link_form_hidden.clone();
+        let hidden = link_form_hide.clone();
         use_callback(
-            move |input_values: Option<Vec<String>>, (card, link)| {
-                let card_index = card.unwrap();
+            move |input_values: Option<Vec<String>>, form_action| {
+                if let (Some(mut values), Some(action)) = (input_values, (**form_action).clone()) {
+                    let url = AttrValue::from(values.pop().unwrap_or_default());
+                    let label = AttrValue::from(values.pop().unwrap_or_default());
 
-                let mut values = match input_values {
-                    Some(vals) => vals,
-                    None => {
-                        hidden.set(true);
+                    if url.is_empty() && label.is_empty() {
                         return;
                     }
-                };
 
-                let url = AttrValue::from(values.pop().unwrap_or_default());
-                let label = AttrValue::from(values.pop().unwrap_or_default());
-
-                if url.is_empty() && label.is_empty() {
-                    return;
+                    let op = match action {
+                        LinkFormAct::Add(index) => CardsHandler::AddLink {
+                            card_index: index,
+                            link: Anchor { label, url },
+                        },
+                        LinkFormAct::Edit { card, link } => CardsHandler::EditLink {
+                            card_index: card,
+                            link_index: link,
+                            new_label: if label.is_empty() { None } else { Some(label) },
+                            new_url: if url.is_empty() { None } else { Some(url) },
+                        },
+                    };
+                    cards.dispatch(op);
                 }
-
-                let action = match **link {
-                    Some(link_index) => ModifyCards::EditLink {
-                        card_index,
-                        link_index,
-                        new_label: if label.is_empty() { None } else { Some(label) },
-                        new_url: if url.is_empty() { None } else { Some(url) },
-                    },
-                    None => ModifyCards::AddLink {
-                        card_index,
-                        link: Anchor { label, url },
-                    },
-                };
-                cards.dispatch(action);
+                form_action.set(None);
                 hidden.set(true);
             },
-            (target_card, target_link),
+            link_form_action.clone(),
         )
     };
 
-    // card callbacks
-    let rename_card = {
-        let hidden = card_form_hidden.clone();
-        let select_card = select_card.clone();
-        Callback::from(move |card_id| {
-            select_card.emit(Some(card_id));
+    // card form callbacks
+    let add_card_form = {
+        let hidden = card_form_hide.clone();
+        let form_action = card_form_action.clone();
+        Callback::from(move |_| {
+            form_action.set(Some(CardFormAct::Add));
             hidden.set(false);
         })
     };
 
-    let rm_card = {
-        let cards = cards.clone();
-        let select_card = select_card.clone();
-        let select_link = select_link.clone();
-        Callback::from(move |card_id: usize| {
-            cards.dispatch(ModifyCards::Remove(card_id));
-            select_card.emit(None);
-            select_link.emit(None)
+    let rename_card = {
+        let form_action = card_form_action;
+        let hidden = card_form_hide.clone();
+        Callback::from(move |card_id| {
+            form_action.set(Some(CardFormAct::Rename(card_id)));
+            hidden.set(false);
         })
     };
 
+    // link form callbacks
     let add_link = {
-        let hidden = link_form_hidden.clone();
-        let select_card = select_card.clone();
-        let select_link = select_link.clone();
+        let form_action = link_form_action.clone();
+        let hidden = link_form_hide.clone();
         Callback::from(move |card_id| {
-            select_card.emit(Some(card_id));
-            select_link.emit(None);
+            form_action.set(Some(LinkFormAct::Add(card_id)));
             hidden.set(false);
         })
     };
 
     let edit_link = {
-        let hidden = link_form_hidden.clone();
-        let select_card = select_card.clone();
-        let select_link = select_link.clone();
-        Callback::from(move |(card_id, link_id)| {
-            select_card.emit(Some(card_id));
-            select_link.emit(Some(link_id));
+        let form_action = link_form_action;
+        let hidden = link_form_hide.clone();
+        Callback::from(move |(card, link)| {
+            form_action.set(Some(LinkFormAct::Edit { card, link }));
             hidden.set(false);
-        })
-    };
-
-    let rm_link = {
-        let cards = cards.clone();
-        Callback::from(move |(card_index, link_index): (usize, usize)| {
-            let action = ModifyCards::RemoveLink {
-                card_index,
-                link_index,
-            };
-            cards.dispatch(action);
-            select_card.emit(None);
-            select_link.emit(None);
         })
     };
 
@@ -201,8 +166,7 @@ fn card_list() -> Html {
         .map(|id| {
             html! {
                 <LinkCard key={format!("card{id}")} {id} rename_card={rename_card.clone()}
-                    rm_card={rm_card.clone()} add_link={add_link.clone()}
-                    edit_link={edit_link.clone()} rm_link={rm_link.clone()}
+                    add_link={add_link.clone()} edit_link={edit_link.clone()}
                 />
             }
         })
@@ -211,10 +175,12 @@ fn card_list() -> Html {
     html! {
         <div class={classes!("cards")}>
             {cards}
-            <button class={classes!("add-card")} onclick={show_card_form}>{"Add card"}</button>
+            <div class={classes!("buttons")}>
+                <button class={classes!("add-card")} onclick={add_card_form}>{"Add card"}</button>
+            </div>
             <div class={classes!("forms")}>
-                <EditForm inputs={card_inputs} hidden={*card_form_hidden} save={change_card}/>
-                <EditForm inputs={link_inputs} hidden={*link_form_hidden} save={change_link}/>
+                <EditForm inputs={card_inputs} hidden={*card_form_hide} save={change_card}/>
+                <EditForm inputs={link_inputs} hidden={*link_form_hide} save={change_link}/>
             </div>
         </div>
     }
@@ -224,10 +190,8 @@ fn card_list() -> Html {
 struct LinkCardProps {
     id: usize,
     rename_card: Callback<usize>,
-    rm_card: Callback<usize>,
     add_link: Callback<usize>,
     edit_link: Callback<(usize, usize)>,
-    rm_link: Callback<(usize, usize)>,
 }
 
 #[function_component(LinkCard)]
@@ -237,19 +201,17 @@ fn link_card(props: &LinkCardProps) -> Html {
     let card_name = &cards.inner[id].name;
     let links = &cards.inner[id].links;
 
-    // rename card
+    // callbacks
+    let rm_card = {
+        let cards = cards.clone();
+        Callback::from(move |_| cards.dispatch(CardsHandler::Remove(id)))
+    };
+
     let rename_card = {
         let rename_card = props.rename_card.clone();
         Callback::from(move |_| rename_card.emit(id))
     };
 
-    // remove card
-    let rm_card = {
-        let rm_card = props.rm_card.clone();
-        Callback::from(move |_| rm_card.emit(id))
-    };
-
-    // add link to card
     let add_link = {
         let add_link = props.add_link.clone();
         Callback::from(move |_| add_link.emit(id))
@@ -262,16 +224,24 @@ fn link_card(props: &LinkCardProps) -> Html {
         .map(|(link_id, link)| {
             let Anchor { label, url } = link;
 
+            // link callbacks
             let edit_link = {
                 let edit_link = props.edit_link.clone();
                 Callback::from(move |_| edit_link.emit((id, link_id)))
             };
 
             let rm_link = {
-                let rm_link = props.rm_link.clone();
-                Callback::from(move |_| rm_link.emit((id, link_id)))
+                let cards = cards.clone();
+                Callback::from(move |_| {
+                    let action = CardsHandler::RemoveLink {
+                        card_index: id,
+                        link_index: link_id,
+                    };
+                    cards.dispatch(action);
+                })
             };
 
+            // link to html
             html! {
                 <div class={classes!("card-link")}>
                     <a key={format!("link{link_id}")} href={url}>{label}</a>

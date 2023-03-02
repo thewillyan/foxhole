@@ -48,7 +48,7 @@ impl Card {
 }
 
 #[derive(Clone, PartialEq)]
-pub enum ModifyCards {
+pub enum CardsHandler {
     // cards
     Add(AttrValue),
     Remove(usize),
@@ -89,35 +89,31 @@ impl Cards {
 }
 
 impl Reducible for Cards {
-    type Action = ModifyCards;
+    type Action = CardsHandler;
 
     fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
         let mut inner = (*self).clone().into_inner();
         match action {
-            ModifyCards::Add(name) => {
-                if name.is_empty() {
-                    return self;
-                }
-                let card = Card::new(name);
-                inner.push(card);
+            Self::Action::Add(name) => {
+                inner.push(Card::new(name));
             }
-            ModifyCards::Remove(index) => {
+            Self::Action::Remove(index) => {
                 inner.remove(index);
             }
-            ModifyCards::Rename {
+            Self::Action::Rename {
                 card_index,
                 new_name,
             } => inner.get_mut(card_index).unwrap().name = new_name,
-            ModifyCards::AddLink { card_index, link } => {
+            Self::Action::AddLink { card_index, link } => {
                 inner.get_mut(card_index).unwrap().push_link(link);
             }
-            ModifyCards::RemoveLink {
+            Self::Action::RemoveLink {
                 card_index,
                 link_index,
             } => {
                 inner.get_mut(card_index).unwrap().remove_link(link_index);
             }
-            ModifyCards::EditLink {
+            Self::Action::EditLink {
                 card_index,
                 link_index,
                 new_label,
