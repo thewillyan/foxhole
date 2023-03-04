@@ -41,9 +41,9 @@ fn card_list() -> Html {
 
     let card_name = match *card_form_action {
         Some(CardFormAct::Rename(index)) => cards.inner[index].name.clone(),
-        _ => AttrValue::default(),
+        _ => String::default(),
     };
-    let input = Input::new(AttrValue::from("New card name:")).value(card_name);
+    let input = Input::new(AttrValue::from("New card name:")).value(AttrValue::from(card_name));
     let card_inputs = vec![input];
 
     let change_card = {
@@ -54,7 +54,7 @@ fn card_list() -> Html {
                 if let (Some(values), Some(action)) = (inputs_values, (**form_action).clone()) {
                     // don't allow empty name
                     let name = match values.into_iter().next() {
-                        Some(val) if !val.is_empty() => AttrValue::from(val),
+                        Some(val) if !val.is_empty() => val,
                         _ => return,
                     };
 
@@ -83,10 +83,10 @@ fn card_list() -> Html {
             let link = &cards.inner[card].links[link];
             (link.label.clone(), link.url.clone())
         }
-        _ => (AttrValue::default(), AttrValue::default()),
+        _ => (String::default(), String::default()),
     };
-    let label_input = Input::new(AttrValue::from("Label:")).value(link_label);
-    let url_input = Input::new(AttrValue::from("URL:")).value(link_url);
+    let label_input = Input::new(AttrValue::from("Label:")).value(AttrValue::from(link_label));
+    let url_input = Input::new(AttrValue::from("URL:")).value(AttrValue::from(link_url));
     let link_inputs = vec![label_input, url_input];
 
     let change_link = {
@@ -95,8 +95,8 @@ fn card_list() -> Html {
         use_callback(
             move |input_values: Option<Vec<String>>, form_action| {
                 if let (Some(mut values), Some(action)) = (input_values, (**form_action).clone()) {
-                    let url = AttrValue::from(values.pop().unwrap_or_default());
-                    let label = AttrValue::from(values.pop().unwrap_or_default());
+                    let url = values.pop().unwrap_or_default();
+                    let label = values.pop().unwrap_or_default();
 
                     if url.is_empty() && label.is_empty() {
                         return;
@@ -199,7 +199,7 @@ fn link_card(props: &LinkCardProps) -> Html {
     let id = props.id;
     let cards = use_context::<CardsContext>().unwrap();
     let card_name = &cards.inner[id].name;
-    let links = &cards.inner[id].links;
+    let links = cards.inner[id].links.clone();
 
     // callbacks
     let rm_card = {
@@ -219,7 +219,7 @@ fn link_card(props: &LinkCardProps) -> Html {
 
     // links into Html
     let links: Html = links
-        .iter()
+        .into_iter()
         .enumerate()
         .map(|(link_id, link)| {
             let Anchor { label, url } = link;

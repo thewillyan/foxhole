@@ -1,25 +1,27 @@
+use gloo_storage::{LocalStorage, Storage};
+use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 use yew::{
-    function_component, html, use_reducer, AttrValue, Children, ContextProvider, Html, Properties,
-    Reducible, UseReducerHandle,
+    function_component, html, use_reducer, Children, ContextProvider, Html, Properties, Reducible,
+    UseReducerHandle,
 };
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct Anchor {
-    pub label: AttrValue,
-    pub url: AttrValue,
+    pub label: String,
+    pub url: String,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct Card {
-    pub name: AttrValue,
+    pub name: String,
     pub links: Vec<Anchor>,
 }
 
 #[allow(dead_code)]
 impl Card {
     /// Constructs a card with no links.
-    pub fn new(name: AttrValue) -> Self {
+    pub fn new(name: String) -> Self {
         Self {
             name,
             links: Vec::new(),
@@ -27,7 +29,7 @@ impl Card {
     }
 
     /// Constructs a card with links from a vector of arrays of the form `[label, url]`.
-    pub fn from(name: AttrValue, links: Vec<[AttrValue; 2]>) -> Self {
+    pub fn from(name: String, links: Vec<[String; 2]>) -> Self {
         let links = links
             .into_iter()
             .map(|[label, url]| Anchor { label, url })
@@ -47,14 +49,14 @@ impl Card {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub enum CardsHandler {
     // cards
-    Add(AttrValue),
+    Add(String),
     Remove(usize),
     Rename {
         card_index: usize,
-        new_name: AttrValue,
+        new_name: String,
     },
     // card links
     AddLink {
@@ -68,21 +70,17 @@ pub enum CardsHandler {
     EditLink {
         card_index: usize,
         link_index: usize,
-        new_label: Option<AttrValue>,
-        new_url: Option<AttrValue>,
+        new_label: Option<String>,
+        new_url: Option<String>,
     },
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Cards {
     pub inner: Vec<Card>,
 }
 
 impl Cards {
-    pub fn new() -> Self {
-        Cards { inner: Vec::new() }
-    }
-
     pub fn into_inner(self) -> Vec<Card> {
         self.inner
     }
@@ -133,7 +131,9 @@ impl Reducible for Cards {
                 }
             }
         }
-        Rc::new(Cards { inner })
+        let cards = Rc::new(Cards { inner });
+        LocalStorage::set("cards", Rc::clone(&cards).as_ref()).unwrap();
+        cards
     }
 }
 
@@ -146,7 +146,7 @@ pub struct CardsProviderProps {
 
 #[function_component(CardsProvider)]
 pub fn cards_provider(CardsProviderProps { children }: &CardsProviderProps) -> Html {
-    let cards = use_reducer(Cards::new);
+    let cards = use_reducer(|| LocalStorage::get::<Cards>("cards").unwrap_or_default());
 
     html! {
         <ContextProvider<CardsContext> context={cards}>
