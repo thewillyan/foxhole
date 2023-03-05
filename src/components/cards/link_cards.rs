@@ -1,5 +1,5 @@
 use crate::components::{
-    cards::cards_ctx::{Anchor, CardsContext, CardsHandler, CardsProvider},
+    cards::cards_ctx::{Anchor, CardId, CardsContext, CardsHandler, CardsProvider, LinkId},
     edit::{EditForm, Input},
 };
 use yew::{
@@ -16,9 +16,6 @@ pub fn link_cards() -> Html {
     }
 }
 
-type CardId = usize;
-type LinkId = usize;
-
 #[derive(Clone, PartialEq)]
 enum CardFormAct {
     Add,
@@ -28,7 +25,7 @@ enum CardFormAct {
 #[derive(Clone, PartialEq)]
 enum LinkFormAct {
     Add(CardId),
-    Edit { card: CardId, link: LinkId },
+    Edit(LinkId),
 }
 
 #[function_component(CardList)]
@@ -61,7 +58,7 @@ fn card_list() -> Html {
                     let op = match action {
                         CardFormAct::Add => CardsHandler::Add(name),
                         CardFormAct::Rename(id) => CardsHandler::Rename {
-                            card_index: id,
+                            card: id,
                             new_name: name,
                         },
                     };
@@ -79,7 +76,7 @@ fn card_list() -> Html {
     let link_form_hide = use_state_eq(|| true);
 
     let (link_label, link_url) = match *link_form_action {
-        Some(LinkFormAct::Edit { card, link }) => {
+        Some(LinkFormAct::Edit(LinkId { card, link })) => {
             let link = &cards.inner[card].links[link];
             (link.label.clone(), link.url.clone())
         }
@@ -107,9 +104,8 @@ fn card_list() -> Html {
                             card_index: index,
                             link: Anchor { label, url },
                         },
-                        LinkFormAct::Edit { card, link } => CardsHandler::EditLink {
-                            card_index: card,
-                            link_index: link,
+                        LinkFormAct::Edit(link_id) => CardsHandler::EditLink {
+                            link: link_id,
                             new_label: if label.is_empty() { None } else { Some(label) },
                             new_url: if url.is_empty() { None } else { Some(url) },
                         },
@@ -156,7 +152,7 @@ fn card_list() -> Html {
         let form_action = link_form_action;
         let hidden = link_form_hide.clone();
         Callback::from(move |(card, link)| {
-            form_action.set(Some(LinkFormAct::Edit { card, link }));
+            form_action.set(Some(LinkFormAct::Edit(LinkId { card, link })));
             hidden.set(false);
         })
     };
@@ -217,7 +213,34 @@ fn link_card(props: &LinkCardProps) -> Html {
         Callback::from(move |_| add_link.emit(id))
     };
 
+    let move_left = {
+        let cards = cards.clone();
+        Callback::from(move |_| {
+            if id == 0 {
+                return;
+            }
+            cards.dispatch(CardsHandler::Swap {
+                card1: id,
+                card2: id - 1,
+            })
+        })
+    };
+
+    let move_right = {
+        let cards = cards.clone();
+        Callback::from(move |_| {
+            if id >= cards.inner.len() - 1 {
+                return;
+            }
+            cards.dispatch(CardsHandler::Swap {
+                card1: id,
+                card2: id + 1,
+            })
+        })
+    };
+
     // links into Html
+    let links_size = links.len();
     let links: Html = links
         .into_iter()
         .enumerate()
@@ -233,11 +256,39 @@ fn link_card(props: &LinkCardProps) -> Html {
             let rm_link = {
                 let cards = cards.clone();
                 Callback::from(move |_| {
-                    let action = CardsHandler::RemoveLink {
-                        card_index: id,
-                        link_index: link_id,
-                    };
+                    let action = CardsHandler::RemoveLink(LinkId {
+                        card: id,
+                        link: link_id,
+                    });
                     cards.dispatch(action);
+                })
+            };
+
+            let move_up = {
+                let cards = cards.clone();
+                Callback::from(move |_| {
+                    if link_id == 0 {
+                        return;
+                    }
+                    cards.dispatch(CardsHandler::SwapLinks {
+                        card: id,
+                        link1: link_id,
+                        link2: link_id - 1,
+                    })
+                })
+            };
+
+            let move_down = {
+                let cards = cards.clone();
+                Callback::from(move |_| {
+                    if link_id >= links_size - 1 {
+                        return;
+                    }
+                    cards.dispatch(CardsHandler::SwapLinks {
+                        card: id,
+                        link1: link_id,
+                        link2: link_id + 1,
+                    })
                 })
             };
 
@@ -246,7 +297,9 @@ fn link_card(props: &LinkCardProps) -> Html {
                 <div class={classes!("card-link")}>
                     <a key={format!("link{link_id}")} href={url}>{label}</a>
                     <div class={classes!("buttons")}>
+                        <button onclick={move_up}>{ "Move Up" }</button>
                         <button onclick={edit_link}>{ "Edit link" }</button>
+                        <button onclick={move_down}>{ "Move Down" }</button>
                         <button onclick={rm_link}>{ "Remove link" }</button>
                     </div>
                 </div>
@@ -261,8 +314,10 @@ fn link_card(props: &LinkCardProps) -> Html {
                 { links }
             </div>
             <div class={classes!("buttons")}>
+                <button onclick={move_left}>{ "Move left" }</button>
                 <button onclick={add_link}>{ "Add link" }</button>
                 <button onclick={rename_card}>{ "Rename card" }</button>
+                <button onclick={move_right}>{ "Move right" }</button>
                 <button onclick={rm_card}>{ "Remove Card" }</button>
             </div>
         </div>

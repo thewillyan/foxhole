@@ -18,7 +18,6 @@ pub struct Card {
     pub links: Vec<Anchor>,
 }
 
-#[allow(dead_code)]
 impl Card {
     /// Constructs a card with no links.
     pub fn new(name: String) -> Self {
@@ -26,16 +25,6 @@ impl Card {
             name,
             links: Vec::new(),
         }
-    }
-
-    /// Constructs a card with links from a vector of arrays of the form `[label, url]`.
-    pub fn from(name: String, links: Vec<[String; 2]>) -> Self {
-        let links = links
-            .into_iter()
-            .map(|[label, url]| Anchor { label, url })
-            .collect::<Vec<_>>();
-
-        Self { name, links }
     }
 
     /// Append a link to the end of the card.
@@ -49,30 +38,13 @@ impl Card {
     }
 }
 
+pub type CardId = usize;
+pub type LinkPos = usize;
+
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
-pub enum CardsHandler {
-    // cards
-    Add(String),
-    Remove(usize),
-    Rename {
-        card_index: usize,
-        new_name: String,
-    },
-    // card links
-    AddLink {
-        card_index: usize,
-        link: Anchor,
-    },
-    RemoveLink {
-        card_index: usize,
-        link_index: usize,
-    },
-    EditLink {
-        card_index: usize,
-        link_index: usize,
-        new_label: Option<String>,
-        new_url: Option<String>,
-    },
+pub struct LinkId {
+    pub card: CardId,
+    pub link: LinkPos,
 }
 
 #[derive(Clone, PartialEq, Default, Serialize, Deserialize)]
@@ -86,49 +58,74 @@ impl Cards {
     }
 }
 
+#[derive(Clone, PartialEq)]
+pub enum CardsHandler {
+    // cards actions
+    Add(String),
+    Remove(CardId),
+    Rename {
+        card: CardId,
+        new_name: String,
+    },
+    Swap {
+        card1: CardId,
+        card2: CardId,
+    },
+    AddLink {
+        card_index: CardId,
+        link: Anchor,
+    },
+    // link actions
+    RemoveLink(LinkId),
+    EditLink {
+        link: LinkId,
+        new_label: Option<String>,
+        new_url: Option<String>,
+    },
+    SwapLinks {
+        card: CardId,
+        link1: LinkPos,
+        link2: LinkPos,
+    },
+}
+
 impl Reducible for Cards {
     type Action = CardsHandler;
 
     fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
         let mut inner = (*self).clone().into_inner();
         match action {
-            Self::Action::Add(name) => {
+            // card actions
+            CardsHandler::Add(name) => {
                 inner.push(Card::new(name));
             }
-            Self::Action::Remove(index) => {
+            CardsHandler::Remove(index) => {
                 inner.remove(index);
             }
-            Self::Action::Rename {
-                card_index,
-                new_name,
-            } => inner.get_mut(card_index).unwrap().name = new_name,
-            Self::Action::AddLink { card_index, link } => {
+            CardsHandler::Rename { card, new_name } => inner.get_mut(card).unwrap().name = new_name,
+            CardsHandler::Swap { card1, card2 } => inner.swap(card1, card2),
+            // link actions
+            CardsHandler::AddLink { card_index, link } => {
                 inner.get_mut(card_index).unwrap().push_link(link);
             }
-            Self::Action::RemoveLink {
-                card_index,
-                link_index,
-            } => {
-                inner.get_mut(card_index).unwrap().remove_link(link_index);
+            CardsHandler::RemoveLink(LinkId { card, link }) => {
+                inner.get_mut(card).unwrap().remove_link(link);
             }
-            Self::Action::EditLink {
-                card_index,
-                link_index,
+            CardsHandler::EditLink {
+                link: LinkId { card, link },
                 new_label,
                 new_url,
             } => {
-                let link = inner
-                    .get_mut(card_index)
-                    .unwrap()
-                    .links
-                    .get_mut(link_index)
-                    .unwrap();
+                let link = inner.get_mut(card).unwrap().links.get_mut(link).unwrap();
                 if let Some(label) = new_label {
                     link.label = label;
                 }
                 if let Some(url) = new_url {
                     link.url = url;
                 }
+            }
+            CardsHandler::SwapLinks { card, link1, link2 } => {
+                inner.get_mut(card).unwrap().links.swap(link1, link2);
             }
         }
         let cards = Rc::new(Cards { inner });
