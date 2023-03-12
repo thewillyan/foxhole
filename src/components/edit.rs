@@ -29,7 +29,6 @@ impl Input {
     }
 }
 
-
 #[derive(Clone, PartialEq, Properties)]
 pub struct EditFormProps {
     pub inputs: Vec<Input>,

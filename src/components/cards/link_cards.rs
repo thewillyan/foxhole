@@ -1,6 +1,9 @@
-use crate::components::{
-    cards::cards_ctx::{Anchor, CardId, CardsContext, CardsHandler, CardsProvider, LinkId},
-    edit::{EditForm, Input},
+use crate::{
+    components::{
+        cards::cards_ctx::{Anchor, CardId, CardsContext, CardsHandler, CardsProvider, LinkId},
+        edit::{EditForm, Input},
+    },
+    GlobalCtx,
 };
 use yew::{
     classes, function_component, html, use_callback, use_context, use_state_eq, AttrValue,
@@ -30,6 +33,7 @@ enum LinkFormAct {
 
 #[function_component(CardList)]
 fn card_list() -> Html {
+    let hide_buttons = !use_context::<GlobalCtx>().unwrap().editable;
     let cards = use_context::<CardsContext>().unwrap();
 
     // card form
@@ -171,7 +175,7 @@ fn card_list() -> Html {
     html! {
         <div class={classes!("cards")}>
             {cards}
-            <div class={classes!("buttons")}>
+            <div class={classes!("buttons")} hidden={hide_buttons}>
                 <button class={classes!("add-card")} onclick={add_card_form}>{"Add card"}</button>
             </div>
             <div class={classes!("forms")}>
@@ -193,6 +197,7 @@ struct LinkCardProps {
 #[function_component(LinkCard)]
 fn link_card(props: &LinkCardProps) -> Html {
     let id = props.id;
+    let hide_buttons = !use_context::<GlobalCtx>().unwrap().editable;
     let cards = use_context::<CardsContext>().unwrap();
     let card_name = &cards.inner[id].name;
     let links = cards.inner[id].links.clone();
@@ -296,7 +301,7 @@ fn link_card(props: &LinkCardProps) -> Html {
             html! {
                 <div class={classes!("card-link")}>
                     <a key={format!("link{link_id}")} href={url}>{label}</a>
-                    <div class={classes!("buttons")}>
+                    <div class={classes!("buttons")} hidden={hide_buttons}>
                         <button onclick={move_up}>{ "Move Up" }</button>
                         <button onclick={edit_link}>{ "Edit link" }</button>
                         <button onclick={move_down}>{ "Move Down" }</button>
@@ -313,7 +318,7 @@ fn link_card(props: &LinkCardProps) -> Html {
             <div class={classes!("links")}>
                 { links }
             </div>
-            <div class={classes!("buttons")}>
+            <div class={classes!("buttons")} hidden={hide_buttons}>
                 <button onclick={move_left}>{ "Move left" }</button>
                 <button onclick={add_link}>{ "Add link" }</button>
                 <button onclick={rename_card}>{ "Rename card" }</button>
