@@ -78,12 +78,15 @@ pub fn edit_form(
         Callback::from(move |_| save.emit(None))
     };
 
+    let hidden_class = if *hidden { Some("hidden") } else { None };
     html! {
-        <div class={classes!("edit-form")} hidden={*hidden}>
-            { inputs }
-            <div class={classes!("buttons")}>
-                <button onclick={save_on_click}>{"Save"}</button>
-                <button onclick={cancel_on_click}>{"Cancel"}</button>
+        <div class={classes!("edit-screen", hidden_class)}>
+            <div class={classes!("edit-form")}>
+                { inputs }
+                <div class={classes!("buttons")}>
+                    <button onclick={save_on_click} type="button">{"Save"}</button>
+                    <button onclick={cancel_on_click} type="button">{"Cancel"}</button>
+                </div>
             </div>
         </div>
     }
