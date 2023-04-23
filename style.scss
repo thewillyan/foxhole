@@ -4,62 +4,17 @@
   text-decoration: none;
 }
 
-// dark
-#app.dark {
-  width: 100%;
-  height: 100vh;
-  background-color: #1f2430;
-  color: #f8f9fa;
-}
-
-#app.dark .greeting .editable-name {
-    text-decoration: dotted underline #f1b359 2px;
-} 
-
-#app.dark .cards > .card {
-  border: solid 2px #b3b1ad;
-  box-shadow: 1px 1px 16px 4px #0e0e0e;
-}
-
-#app.dark .cards .card-link > a {
-    color: #39bae6;
-}
-
-#app.dark .edit-screen > .edit-form {
-    border: solid 2px #e6b450;
-    box-shadow: 1px 1px 16px 4px #111111;
-    background-color: #1d202f;
-}
-
-// white
-#app.white {
-    width: 100%;
-    height: 100vh;
-    color: #1f2430;
-    background-color: #f3f4f5;
-}
-
-#app.white .greeting .editable-name {
-    text-decoration: dotted underline #f1b359 2px;
-} 
-
-#app.white .cards > .card {
-  border: solid 2px #1f2430;
-  box-shadow: 1px 1px 8px 4px #a8a8a8;
-}
-
-#app.white .cards .card-link > a {
-    //color: #fa8d3e;
-    color: #39bae6;
-}
-
-#app.white .edit-screen > .edit-form {
-    background-color: #f0f1f2;
-    border: solid 2px #f1b359;
-    box-shadow: 1px 1px 16px 4px #111111;
+html, body {
+    height: 100%;
 }
 
 // general
+#app {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+}
+
 .hidden {
     visibility: hidden;
 }
@@ -93,7 +48,6 @@ button {
 
 .cards {
   width: 100%;
-  max-height: 90vh;
   display: flex;
   flex-flow: row wrap;
   justify-content: center;
@@ -151,4 +105,54 @@ button {
 .edit-screen > .edit-form input {
     margin-left: 1em;
     margin-bottom: 8px;
+}
+
+// dark
+#app.dark {
+  background-color: #1f2430;
+  color: #f8f9fa;
+}
+
+#app.dark .greeting .editable-name {
+    text-decoration: dotted underline #f1b359 2px;
+} 
+
+#app.dark .cards > .card {
+  border: solid 2px #b3b1ad;
+  box-shadow: 1px 1px 16px 4px #0e0e0e;
+}
+
+#app.dark .cards .card-link > a {
+    color: #39bae6;
+}
+
+#app.dark .edit-screen > .edit-form {
+    border: solid 2px #e6b450;
+    box-shadow: 1px 1px 16px 4px #111111;
+    background-color: #1d202f;
+}
+
+// white
+#app.white {
+    color: #1f2430;
+    background-color: #f3f4f5;
+}
+
+#app.white .greeting .editable-name {
+    text-decoration: dotted underline #f1b359 2px;
+} 
+
+#app.white .cards > .card {
+  border: solid 2px #1f2430;
+  box-shadow: 1px 1px 8px 4px #a8a8a8;
+}
+
+#app.white .cards .card-link > a {
+    color: #39bae6;
+}
+
+#app.white .edit-screen > .edit-form {
+    background-color: #f0f1f2;
+    border: solid 2px #f1b359;
+    box-shadow: 1px 1px 16px 4px #111111;
 }
