@@ -2,6 +2,8 @@
   margin: 0;
   padding: 0;
   text-decoration: none;
+  border: none;
+  outline: none;
 }
 
 html, body {
@@ -19,9 +21,23 @@ html, body {
     visibility: hidden;
 }
 
-button {
+#app button {
     margin: 4px;
-    padding: 2px;
+    padding: 4px 8px;
+    font-size: 1em;
+    background-color: #dedede;
+    border-radius: 3px;
+}
+
+#app button:hover {
+    cursor: pointer;
+    background-color: #cfcfcf;
+}
+
+.icon {
+    font-size: 1.1em;
+    padding: 2px 6px;
+    font-weight: bold;
 }
 
 .bar {
@@ -67,6 +83,10 @@ button {
 }
 
 .cards .card-link {
+    display: flex;
+    flex-flow: row nowrap;
+    align-content: space-between;
+    justify-content: space-between;
     margin-bottom: 4px;
 }
 
@@ -124,6 +144,10 @@ button {
 
 #app.dark .cards .card-link > a {
     color: #39bae6;
+}
+
+#app.dark .cards .card-link > a:hover {
+    text-decoration: underline;
 }
 
 #app.dark .edit-screen > .edit-form {

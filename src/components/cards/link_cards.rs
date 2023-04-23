@@ -176,7 +176,7 @@ fn card_list() -> Html {
         <div class={classes!("cards")}>
             {cards}
             <div class={classes!("buttons")} hidden={hide_buttons}>
-                <button class={classes!("add-card")} onclick={add_card_form}>{"Add card"}</button>
+                <button class={classes!("add-card,icon")} onclick={add_card_form}>{"➕"}</button>
             </div>
             <div class={classes!("forms")}>
                 <EditForm inputs={card_inputs} hidden={*card_form_hide} save={change_card}/>
@@ -302,10 +302,10 @@ fn link_card(props: &LinkCardProps) -> Html {
                 <div class={classes!("card-link")}>
                     <a key={format!("link{link_id}")} href={url}>{label}</a>
                     <div class={classes!("buttons")} hidden={hide_buttons}>
-                        <button onclick={move_up}>{ "Move Up" }</button>
-                        <button onclick={edit_link}>{ "Edit link" }</button>
-                        <button onclick={move_down}>{ "Move Down" }</button>
-                        <button onclick={rm_link}>{ "Remove link" }</button>
+                        <button onclick={edit_link}>{ "Edit" }</button>
+                        <button onclick={move_up} class={classes!("icon")}>{ "↑" }</button>
+                        <button onclick={move_down} class={classes!("icon")}>{ "↓" }</button>
+                        <button onclick={rm_link} class={classes!("icon")}>{ "🗙" }</button>
                     </div>
                 </div>
             }
@@ -319,11 +319,11 @@ fn link_card(props: &LinkCardProps) -> Html {
                 { links }
             </div>
             <div class={classes!("buttons")} hidden={hide_buttons}>
-                <button onclick={move_left}>{ "Move left" }</button>
-                <button onclick={add_link}>{ "Add link" }</button>
-                <button onclick={rename_card}>{ "Rename card" }</button>
-                <button onclick={move_right}>{ "Move right" }</button>
-                <button onclick={rm_card}>{ "Remove Card" }</button>
+                <button onclick={move_left} class={classes!("icon")}>{ "❰" }</button>
+                <button onclick={add_link} >{ "🔗 Link" }</button>
+                <button onclick={rename_card}>{ "✏️ Rename" }</button>
+                <button onclick={rm_card}>{ "🗑️ Remove" }</button>
+                <button onclick={move_right} class={classes!("icon")}>{ "❱" }</button>
             </div>
         </div>
     }
