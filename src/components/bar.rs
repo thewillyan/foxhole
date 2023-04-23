@@ -15,8 +15,13 @@ pub fn bar() -> Html {
 
     html! {
         <div class={classes!("bar")}>
-            <button onclick={toggle_theme} hidden={theme_button_hide}>{ "Change Theme" }</button>
-            <button onclick={toggle_edit}>{ "Toggle Edit" }</button>
+            <button onclick={toggle_theme} hidden={theme_button_hide}>{ "🎨 Theme" }</button>
+            <div id="toggle-edit">
+                <label>
+                    <span>{ "⚙️  Edit mode:" }</span>
+                    <input type="checkbox" onchange={toggle_edit}/>
+                </label>
+            </div>
         </div>
     }
 }

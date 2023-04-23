@@ -4,6 +4,7 @@
   text-decoration: none;
   border: none;
   outline: none;
+  box-sizing: border-box;
 }
 
 html, body {
@@ -47,6 +48,30 @@ html, body {
   align-items: center;
   align-content: center;
   padding: 1em;
+}
+
+.bar > #toggle-edit {
+    display: flex;
+    flex-flow: row nowrap;
+    background-color: #dedede;
+    margin: 4px;
+    padding: 4px 12px;
+    font-size: 1em;
+    color: #0e0e0e;
+    background-color: #dedede;
+    border-radius: 3px;
+}
+
+.bar > #toggle-edit > label > span {
+    padding-right: 8px;
+}
+
+.bar > #toggle-edit:hover {
+    background-color: #cfcfcf;
+}
+
+.bar > #toggle-edit > label:hover, .bar > #toggle-edit input:hover {
+    cursor: pointer;
 }
 
 #app > header {
