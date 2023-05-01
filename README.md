@@ -1,9 +1,11 @@
 # Foxhole
-A simple bookmark manager as a homepage for your browser.
+A simple bookmark manager as a start page for your browser. Heavily inspired
+by the [ayu](https://github.com/ayu-theme/) and 
+[moonbow](https://github.com/arturgoms/moonbow.nvim) themes.
 
 ## Setup
 You can set the [official URL](https://thewillyan.github.io/foxhole/) as your
-startpage on almost every browser through the settings.
+homepage on almost every browser through the settings.
 
 <details>
 <summary><b>Firefox</b></summary>
@@ -20,10 +22,13 @@ For any chromium based browsers you should go to
 and then copy and paste the Foxhole URL in the input field.
 </details>
 
+## Overview
+![Foxhole Screenshot](.misc/foxhole_dark.png)
+![Foxhole Screenshot](.misc/foxhole_dark_edit.png)
+![Foxhole Screenshot](.misc/foxhole_white.png)
+![Foxhole Screenshot](.misc/foxhole_white_edit.png)
+
 ## Build with
 - [Rust](https://www.rust-lang.org/) - Programming language
 - [Yew](https://yew.rs/) - Framework
 - [Trunk](https://trunkrs.dev/) - WASM web application bundler
- 
-## Overview
-![Foxhole Screenshot](.misc/foxhole.png)
