@@ -176,7 +176,7 @@ fn card_list() -> Html {
         <div class={classes!("cards")}>
             {cards}
             <div class={classes!("buttons")} hidden={hide_buttons}>
-                <button class={classes!("add-card,icon")} onclick={add_card_form}>{"➕"}</button>
+                <button class={classes!("add-card","icon")} onclick={add_card_form}>{"+"}</button>
             </div>
             <div class={classes!("forms")}>
                 <EditForm inputs={card_inputs} hidden={*card_form_hide} save={change_card}/>
