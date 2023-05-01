@@ -1,3 +1,12 @@
+$dark-bg: #0A0E14;
+$dark-fg: #B3B1AD;
+$dark-hl: #ff8f40;
+$dark-ui: #4D5566;
+$dark-border: #d5c4a1;
+$dark-light: #f2e5bc;
+$dark-link: #83a598;
+$dark-shadow: #282828;
+
 * {
   margin: 0;
   padding: 0;
@@ -16,9 +25,10 @@ html, body {
     height: auto;
     min-height: 100vh;
     overflow: visible;
+    font-size: 1em;
 }
 
-.hidden {
+#app .hidden {
     visibility: hidden;
 }
 
@@ -28,6 +38,7 @@ html, body {
     font-size: 1em;
     background-color: #dedede;
     border-radius: 3px;
+    user-select: none;
 }
 
 #app button:hover {
@@ -35,13 +46,22 @@ html, body {
     background-color: #cfcfcf;
 }
 
-.icon {
+#app input {
+    font-size: 1em;
+    padding: 2px 4px;
+}
+
+#app a:hover {
+    text-decoration: underline;
+}
+
+#app .icon {
     font-size: 1.1em;
     padding: 2px 6px;
     font-weight: bold;
 }
 
-.bar {
+#app .bar {
   display: flex;
   flex-flow: row nowrap;
   justify-content: flex-end;
@@ -50,27 +70,21 @@ html, body {
   padding: 1em;
 }
 
-.bar > #toggle-edit {
+#app .bar > #toggle-edit {
     display: flex;
     flex-flow: row nowrap;
-    background-color: #dedede;
     margin: 4px;
     padding: 4px 12px;
     font-size: 1em;
-    color: #0e0e0e;
-    background-color: #dedede;
     border-radius: 3px;
+    user-select: none;
 }
 
-.bar > #toggle-edit > label > span {
+#app .bar > #toggle-edit > label > span {
     padding-right: 8px;
 }
 
-.bar > #toggle-edit:hover {
-    background-color: #cfcfcf;
-}
-
-.bar > #toggle-edit > label:hover, .bar > #toggle-edit input:hover {
+#app .bar > #toggle-edit > label:hover, .bar > #toggle-edit input:hover {
     cursor: pointer;
 }
 
@@ -82,8 +96,12 @@ html, body {
   align-items: center;
 }
 
+#app .greeting > p {
+    margin-top: 8px;
+    font-size: 1.1em;
+}
 
-.greeting .editable-name:hover {
+#app .greeting .editable-name:hover {
     cursor: pointer;
 } 
 
@@ -99,7 +117,7 @@ html, body {
 .cards > .card {
   padding: 1em;
   margin: 1em;
-  min-width: 14em;
+  min-width: 16em;
   border-radius: 8px;
 }
 
@@ -135,16 +153,13 @@ html, body {
 
     width: 100%;
     height: 100%;
-    background: rgba(50,50,50,0.5);
+    background: rgba(16,16,16,0.5);
 }
 
 .edit-screen > .edit-form {
     min-width: 20em;
     padding: 1.5em;
-    border-radius: 4px;
-    border: solid 2px #e6b450;
-    box-shadow: 1px 1px 16px 4px #111111;
-    background-color: #1d202f;
+    border-radius: 8px;
 }
 
 .edit-screen > .edit-form input {
@@ -154,31 +169,38 @@ html, body {
 
 // dark
 #app.dark {
-  background-color: #1f2430;
-  color: #f8f9fa;
+  background-color: $dark-bg;
+  color: $dark-fg
+}
+
+#app.dark a {
+    color: $dark-link;
+}
+
+
+#app.dark button, #app.dark #toggle-edit {
+    color: $dark-bg;
+    background-color: $dark-light;
+}
+
+#app.dark input {
+    background-color: $dark-light;
+    color: $dark-bg;
 }
 
 #app.dark .greeting .editable-name {
-    text-decoration: dotted underline #f1b359 2px;
+    color: $dark-light;
+    text-decoration: dotted underline $dark-hl 3px;
 } 
 
 #app.dark .cards > .card {
-  border: solid 2px #b3b1ad;
-  box-shadow: 1px 1px 16px 4px #0e0e0e;
-}
-
-#app.dark .cards .card-link > a {
-    color: #39bae6;
-}
-
-#app.dark .cards .card-link > a:hover {
-    text-decoration: underline;
+  border: solid 2px $dark-border;
 }
 
 #app.dark .edit-screen > .edit-form {
-    border: solid 2px #e6b450;
-    box-shadow: 1px 1px 16px 4px #111111;
-    background-color: #1d202f;
+    border: solid 2px $dark-border;
+    box-shadow: 1px 1px 12px 4px $dark-shadow;
+    background-color: $dark-bg;
 }
 
 // white
